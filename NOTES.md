@@ -1,0 +1,7 @@
+MainProcess vs renderer process - The main process acts like the brain of an electron application. It starts when the app launches and is responsible for things like creating windows, managing the app lifecycle, communicating with the operating system, and handling ipc communication. On the other hand, the renderer process is where the user interface runs. In our project, the next.js application runs inside the renderer process and is responsible for displaying data and handling user interactions.
+
+Why can't the renderer (your Next.js UI) directly read/write files or talk to a database?
+The renderer process works similarly to a regular web browser, so it should not be given direct access to files or the database. If it could access these resources directly, any malicious or unsafe code running in the ui could potentially read, change, or even delete important user data. To keep the application secure, the renderer process sends requests through ipc, and the main process or backend handles the actual file and database operations.
+
+What does contextIsolation do, and why does Electron recommend keeping it true?
+Keeping contextIsolation enabled makes the application more secure by creating a clear boundary between the Electron internals and the ui code. This ensures that the renderer process can only access the api that we intentionally expose through the preload script. As a result, even if untrusted or malicious code runs in the ui, it cannot directly access sensitive electron or node.js features, reducing potential security risks.
