@@ -18,10 +18,16 @@ export default function Home() {
 
   const fetchTodos = async () => {
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setTodos(data);
+      if (typeof window !== "undefined" && (window as any).electronAPI) {
+        const data = await (window as any).electronAPI.getTodos();
+        setTodos(data);
+      } else {
+        // Fallback for direct browser testing if needed
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setTodos(data);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -37,19 +43,24 @@ export default function Home() {
     e.preventDefault();
     if (!title.trim()) return;
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          title, 
-          description: description.trim() ? description : "No description provided" 
-        }),
-      });
-      if (res.ok) {
-        setTitle("");
-        setDescription("");
-        fetchTodos();
+      const payload = { 
+        title, 
+        description: description.trim() ? description : "No description provided" 
+      };
+      
+      if (typeof window !== "undefined" && (window as any).electronAPI) {
+        await (window as any).electronAPI.addTodo(payload);
+      } else {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
       }
+      
+      setTitle("");
+      setDescription("");
+      fetchTodos();
     } catch (error) {
       console.error(error);
     }
@@ -57,14 +68,18 @@ export default function Home() {
 
   const toggleTodo = async (id: number, currentStatus: boolean) => {
     try {
-      if (!currentStatus) {
-        await fetch(`${API_URL}/${id}/done`, { method: "PATCH" });
+      if (typeof window !== "undefined" && (window as any).electronAPI) {
+        await (window as any).electronAPI.toggleTodo(id, currentStatus);
       } else {
-        await fetch(`${API_URL}/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ completed: false }),
-        });
+        if (!currentStatus) {
+          await fetch(`${API_URL}/${id}/done`, { method: "PATCH" });
+        } else {
+          await fetch(`${API_URL}/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ completed: false }),
+          });
+        }
       }
       fetchTodos();
     } catch (error) {
@@ -74,7 +89,11 @@ export default function Home() {
 
   const deleteTodo = async (id: number) => {
     try {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if (typeof window !== "undefined" && (window as any).electronAPI) {
+        await (window as any).electronAPI.deleteTodo(id);
+      } else {
+        await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      }
       fetchTodos();
     } catch (error) {
       console.error(error);
