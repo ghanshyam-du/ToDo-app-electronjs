@@ -8,7 +8,7 @@ interface Todo {
   completed: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/todo
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/todo";
 
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -82,7 +82,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-8 font-sans selection:bg-indigo-500/30">
+    <div className="p-8">
       <div className="max-w-2xl mx-auto">
         <header className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 mb-4">
