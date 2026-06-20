@@ -1,0 +1,51 @@
+name: Build Electron App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build Next.js frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Build NestJS backend
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Rebuild native dependencies for Electron
+        run: npx electron-rebuild -f -m ./backend
+
+      - name: Make Electron App (NSIS)
+        run: npm run make
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: out/make/**/*.exe
